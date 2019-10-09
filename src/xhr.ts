@@ -3,11 +3,14 @@ import { parseHeaders } from './helpers/headers'
 
 export default function axios(config: AxiosRequesetConfig): AxiosPromise {
   // TODO
-  return new Promise(resolve => {
-    const { url, method = 'get', data = null, headers = {}, responseType } = config
+  return new Promise((resolve, reject) => {
+    const { url, method = 'get', data = null, headers = {}, responseType, timeout } = config
     const request = new XMLHttpRequest()
     if (responseType) {
       request.responseType = responseType
+    }
+    if (timeout) {
+      request.timeout = timeout
     }
     request.onreadystatechange = function handleLoad() {
       if (request.readyState !== 4) {
@@ -24,6 +27,12 @@ export default function axios(config: AxiosRequesetConfig): AxiosPromise {
         request
       }
       resolve(response)
+    }
+    request.onerror = function hanldError() {
+      reject(new Error('NetWork Error'))
+    }
+    request.ontimeout = function handleTimeout() {
+      reject(new Error(`Timeout of $${timeout} ms exceeded`))
     }
     request.open(method.toUpperCase(), url, true)
     Object.keys(headers).forEach(name => {
